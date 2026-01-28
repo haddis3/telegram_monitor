@@ -2,6 +2,7 @@ import asyncio
 from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.triggers.cron import CronTrigger
 from config import Config
 from telegram_client import TelegramMonitor
 from summarizer import Summarizer
@@ -13,6 +14,15 @@ class MonitorScheduler:
         self.telegram = TelegramMonitor()
         self.summarizer = Summarizer()
         self._running = False
+
+    async def run_daily_checkin(self):
+        """每日打卡"""
+        print(f"\n[{datetime.now()}] 执行每日打卡...")
+        try:
+            await self.telegram.send_message(Config.TARGET_CHANNEL_ID, "🥒🐱")
+            print(f"  ✅ 打卡完成")
+        except Exception as e:
+            print(f"  ❌ 打卡失败: {e}")
 
     async def run_summary_task(self):
         """执行一次总结任务"""
@@ -57,13 +67,21 @@ class MonitorScheduler:
         print("正在连接 Telegram...")
         await self.telegram.start()
 
-        # 添加定时任务
+        # 添加总结定时任务
         self.scheduler.add_job(
             self.run_summary_task,
             trigger=IntervalTrigger(hours=Config.SUMMARY_INTERVAL_HOURS),
             id="summary_task",
             name="群消息总结",
             next_run_time=datetime.now()  # 立即执行一次
+        )
+
+        # 添加每日打卡任务（每天早上8点）
+        self.scheduler.add_job(
+            self.run_daily_checkin,
+            trigger=CronTrigger(hour=8, minute=0),
+            id="daily_checkin",
+            name="每日打卡"
         )
 
         self.scheduler.start()
@@ -73,6 +91,7 @@ class MonitorScheduler:
         print(f"   监控群: {Config.MONITOR_CHAT_IDS}")
         print(f"   目标 Channel: {Config.TARGET_CHANNEL_ID}")
         print(f"   总结间隔: 每 {Config.SUMMARY_INTERVAL_HOURS} 小时")
+        print(f"   每日打卡: 每天 08:00")
         print(f"\n按 Ctrl+C 停止...\n")
 
         # 保持运行
