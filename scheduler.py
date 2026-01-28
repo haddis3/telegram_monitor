@@ -18,11 +18,12 @@ class MonitorScheduler:
     async def run_daily_checkin(self):
         """每日打卡"""
         print(f"\n[{datetime.now()}] 执行每日打卡...")
-        try:
-            await self.telegram.send_message(Config.TARGET_CHANNEL_ID, "🥒🐱")
-            print(f"  ✅ 打卡完成")
-        except Exception as e:
-            print(f"  ❌ 打卡失败: {e}")
+        for chat_id in Config.MONITOR_CHAT_IDS:
+            try:
+                await self.telegram.send_message(chat_id, "🥒🐱")
+                print(f"  ✅ 打卡完成: {chat_id}")
+            except Exception as e:
+                print(f"  ❌ 打卡失败 {chat_id}: {e}")
 
     async def run_summary_task(self):
         """执行一次总结任务"""
