@@ -1,0 +1,17 @@
+# 敏感文件
+.env
+*.session
+code.txt
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.idea/
+
+# 日志
+*.log
