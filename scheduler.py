@@ -30,7 +30,6 @@ class MonitorScheduler:
         print(f"\n[{datetime.now()}] 开始执行总结任务...")
 
         all_summaries = []
-        all_highlighted_messages = []
 
         for chat_id in Config.MONITOR_CHAT_IDS:
             try:
@@ -44,16 +43,23 @@ class MonitorScheduler:
 
                 print(f"  正在生成总结...")
                 summary = self.summarizer.summarize(messages, chat_title)
-                all_summaries.append(summary)
 
-                # 筛选特定用户的消息
-                if Config.HIGHLIGHT_USERNAME:
+                # 仅在指定群的总结后附加特定用户的发言
+                if Config.HIGHLIGHT_USERNAME and chat_id == Config.HIGHLIGHT_CHAT_ID:
                     highlighted = [
                         m for m in messages
                         if m.get("username", "").lower() == Config.HIGHLIGHT_USERNAME.lower()
                     ]
-                    all_highlighted_messages.extend(highlighted)
                     print(f"  筛选到 @{Config.HIGHLIGHT_USERNAME} 的消息: {len(highlighted)} 条")
+                    summary += "\n\n" + "─" * 30 + "\n"
+                    summary += f"📌 @{Config.HIGHLIGHT_USERNAME} 发言记录\n\n"
+                    if highlighted:
+                        for m in highlighted:
+                            summary += f"[{m['time']}]\n{m['text']}\n\n"
+                    else:
+                        summary += "无发言\n"
+
+                all_summaries.append(summary)
 
             except Exception as e:
                 print(f"  ❌ 处理 {chat_id} 时出错: {e}")
@@ -62,17 +68,6 @@ class MonitorScheduler:
         # 发送总结到目标 channel
         if all_summaries:
             final_summary = "\n\n" + "═" * 40 + "\n\n".join(all_summaries) if len(all_summaries) > 1 else all_summaries[0]
-
-            # 附加特定用户的全部发言
-            if Config.HIGHLIGHT_USERNAME:
-                final_summary += "\n\n" + "═" * 40 + "\n"
-                final_summary += f"📌 @{Config.HIGHLIGHT_USERNAME} 发言记录\n"
-                final_summary += "─" * 30 + "\n\n"
-                if all_highlighted_messages:
-                    for m in all_highlighted_messages:
-                        final_summary += f"[{m['time']}]\n{m['text']}\n\n"
-                else:
-                    final_summary += "无发言\n"
 
             try:
                 print(f"  正在发送总结到 {Config.TARGET_CHANNEL_ID}...")

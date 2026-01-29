@@ -38,6 +38,10 @@ class Config:
     # 特别关注的用户 username（不带@）
     HIGHLIGHT_USERNAME = os.getenv("HIGHLIGHT_USERNAME", "").lstrip("@")
 
+    # 该用户发言只展示在此群的总结后面
+    _highlight_chat = os.getenv("HIGHLIGHT_CHAT_ID", "")
+    HIGHLIGHT_CHAT_ID = int(_highlight_chat) if _highlight_chat.lstrip('-').isdigit() else _highlight_chat
+
     @classmethod
     def validate(cls):
         """验证配置是否完整"""
