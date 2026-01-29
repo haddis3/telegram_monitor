@@ -46,6 +46,7 @@ class TelegramMonitor:
                 continue
 
             sender_name = "Unknown"
+            sender_username = ""
             if msg.sender:
                 if hasattr(msg.sender, 'first_name'):
                     sender_name = msg.sender.first_name or ""
@@ -53,9 +54,12 @@ class TelegramMonitor:
                         sender_name += f" {msg.sender.last_name}"
                 elif hasattr(msg.sender, 'title'):
                     sender_name = msg.sender.title
+                if hasattr(msg.sender, 'username') and msg.sender.username:
+                    sender_username = msg.sender.username
 
             messages.append({
                 "sender": sender_name.strip(),
+                "username": sender_username,
                 "text": msg.text,
                 "time": msg.date.strftime("%Y-%m-%d %H:%M:%S")
             })

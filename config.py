@@ -35,6 +35,9 @@ class Config:
     # Telegram 手机号（用于自动登录）
     TELEGRAM_PHONE = os.getenv("TELEGRAM_PHONE", "")
 
+    # 特别关注的用户 username（不带@）
+    HIGHLIGHT_USERNAME = os.getenv("HIGHLIGHT_USERNAME", "").lstrip("@")
+
     @classmethod
     def validate(cls):
         """验证配置是否完整"""
